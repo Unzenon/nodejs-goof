@@ -35,12 +35,12 @@ pipeline {
             }
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: "DeploymentSSHKey", keyFileVariable: 'keyfile')]) {
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 "echo $DOCKERHUB_CREDENTIALS-PSW | docker login -u $DOCKERHUB_CREDENTIALS-ID --password-stdin DOCKERHUB_CREDENTIALS-PSW | docker login -u $DOCKERHUB_CREDENTIALS-ID --password-stdin "'
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 docker pull habibana028/nodejs-goof:0.1'
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 docker rm -f mongodb'
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 run -d --name mongodb -p 27017:27017 mongo:3'
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 rm -f nodejs-goof'
-                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.48 run -it -d -p 3001:3001 --name nodejs --network host habibana028/nodejs-goof:0.1'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 "echo $DOCKERHUB_CREDENTIALS-PSW | docker login -u $DOCKERHUB_CREDENTIALS-ID --password-stdin DOCKERHUB_CREDENTIALS-PSW | docker login -u $DOCKERHUB_CREDENTIALS-ID --password-stdin "'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 docker pull habibana028/nodejs-goof:0.1'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 docker rm -f mongodb'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 run -d --name mongodb -p 27017:27017 mongo:3'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 rm -f nodejs-goof'
+                    sh 'ssh -i ${keyfile} -o StrickHostKeyChecking=no ubuntu@192.168.100.43 run -it -d -p 3001:3001 --name nodejs --network host habibana028/nodejs-goof:0.1'
                 }
             }
             }
