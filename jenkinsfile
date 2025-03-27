@@ -16,10 +16,11 @@ pipeline {
         stage('Build Docker Image and Push to Docker Registry') { 
             agent {
                 docker {
-                    image 'docker:dind'
-                    args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+                    image 'docker:latest'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
+
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerLogin', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh 'docker build -t habibana028/nodejs-goof:0.1 .'
