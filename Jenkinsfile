@@ -42,7 +42,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: "DeploymentSSHKey", keyFileVariable: 'keyfile')]) {
                     sh '''
-                    ssh -i ${keyfile} -o StrictHostKeyChecking=no ubuntu@192.168.100.43 << EOF
+                    ssh -i ${keyfile} -o StrictHostKeyChecking=no ubuntu@192.168.100.174 << EOF
                         echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_ID --password-stdin
                         docker pull habibana028/nodejs-goof:0.1
                         docker rm -f mongodb || true
