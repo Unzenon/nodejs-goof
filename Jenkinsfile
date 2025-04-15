@@ -1,11 +1,11 @@
-pipeline { 
-    agent none 
+pipeline {
+    agent none
 
-    environment { 
-        DOCKERHUB_CREDENTIALS = credentials('DockerLogin') 
-    } 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('DockerLogin')
+    }
 
-    stages { 
+    stages {
         stage('Build') {
             agent {
                 docker {
@@ -18,10 +18,10 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image and Push to Docker Registry') { 
+        stage('Build Docker Image and Push to Docker Registry') {
             agent {
                 docker {
-                    image 'docker:dind'
+                    image 'docker' // ganti dari 'docker:dind'
                     args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
@@ -32,7 +32,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Docker Image') { 
+        stage('Deploy Docker Image') {
             agent {
                 docker {
                     image 'kroniak/ssh-client'
@@ -53,6 +53,6 @@ pipeline {
                     '''
                 }
             }
-        }   
+        }
     }
 }
