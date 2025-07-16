@@ -3,6 +3,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('DockerLogin')
         SNYK_CREDENTIALS = credentials('SnykToken')
+        SONARQUBE_CREDENTIALS = credentials('SonarToken')
     }
     stages {
         stage('Secret Scanning Using Trufflehog'){
@@ -91,6 +92,41 @@ pipeline {
             archiveArtifacts artifacts: 'trivy-scan-dockerfile-report.json'
             }
         }
+        stage('SAST Snyk') {
+            agent {
+                docker {
+                    image 'snyk/snyk:node'
+                    args '-u root --network host'
+                }
+            }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'snyk code test --json > snyk-sast-report.json'
+                }
+                sh 'cat snyk-sast-report.json'
+                archiveArtifacts artifacts: 'snyk-sast-report.json'
+            }
+        }
+        stage('SAST SonarQube') {
+            agent {
+                docker {
+                    image 'sonarsource/sonar-scanner-cli:latest'
+                    args '--network host -v .:/usr/src'
+                }
+            }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh '''
+                        sonar-scanner \
+                        -Dsonar.projectKey=nodejs-goof \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://192.168.0.78:9000 \
+                        -Dsonar.login=$SONARQUBE_TOKEN \
+                        -Dsonar.qualitygate.wait=true
+                    '''
+                }
+            }
+        }
         stage('Build Docker Image and Push to Docker Registry') {
             agent {
                 docker {
@@ -113,12 +149,12 @@ pipeline {
             }
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'DeploymentSSHKey', keyFileVariable: 'keyfile')]) {
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"'
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 docker pull habibana028/nodejsgoof:0.1'
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 docker rm --force mongodb || true'
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 docker run --detach --name mongodb -p 27017:27017 mongo:3'
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 docker rm --force nodejsgoof || true'
-                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.38 docker run -it --detach --name nodejsgoof --network host habibana028/nodejsgoof:0.1'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 docker pull habibana028/nodejsgoof:0.1'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 docker rm --force mongodb || true'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 docker run --detach --name mongodb -p 27017:27017 mongo:3'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 docker rm --force nodejsgoof || true'
+                    sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no deploy@192.168.0.78 docker run -it --detach --name nodejsgoof --network host habibana028/nodejsgoof:0.1'
                 }
             }
         }
