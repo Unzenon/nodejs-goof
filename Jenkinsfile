@@ -121,7 +121,7 @@ pipeline {
                         -Dsonar.projectKey=nodejs-goof \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=http://192.168.0.78:9000 \
-                        -Dsonar.login=$SONARQUBE_TOKEN \
+                        -Dsonar.login=$SONARQUBE_CREDENTIALS_PSW \
                         -Dsonar.qualitygate.wait=true
                     '''
                 }
